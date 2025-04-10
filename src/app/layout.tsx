@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Giovana mind",
-  description: "Chatbot sobre a vida da Giovana",
+  description: "Giovana mind - Chatbot sobre a vida da Giovana",
 };
 
 export default function RootLayout({
