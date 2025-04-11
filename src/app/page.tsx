@@ -1,15 +1,65 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ChatInput from "./_components/ChatInput";
 import UserMessage from "./_components/UserMessage";
 import ChatbotMessage from "./_components/ChatbotMessage";
 import Header from "./_components/Hearder";
+import Loading from "./_components/Loading";
+import { useSearchParams } from "next/navigation";
 
 export default function Home() {
-  const [msgs, setMsgs] = React.useState<{ text: string; isUser: boolean }[]>([]);
-  const [loading, setLoading] = React.useState(false);
+  const [msgs, setMsgs] = useState<{ text: string; isUser: boolean }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<number | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const loadSession = async () => {
+      const id = searchParams.get("session");
+      if (id) {
+        try {
+          setLoading(true);
+          const res = await fetch(`/api/session?id=${id}`);
+          if (res.ok) {
+            const data = await res.json();
+            setSessionId(data.session.id);
+            setMsgs(data.messages.map((msg: any) => ({
+              text: msg.content,
+              isUser: msg.role === "user",
+            })));
+          }
+        } catch (err) {
+          console.error("Error loading session:", err);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        createNewSession();
+      }
+    };
+
+    loadSession();
+  }, [searchParams]);
+
+  const createNewSession = async () => {
+    try {
+      const res = await fetch("/api/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ title: "New Chat" }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSessionId(data.id);
+      }
+    } catch (err) {
+      console.error("Error creating session:", err);
+    }
+  };
 
   const scrollToBottom = () => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -24,29 +74,34 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
+      const res = await fetch("/api/chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: msg }),
+        body: JSON.stringify({ 
+          message: msg,
+          sessionId: sessionId 
+        }),
       });
 
       if (!res.ok) {
-        throw new Error('Erro ao conectar com o servidor');
+        throw new Error("Erro ao conectar com o servidor");
       }
 
       const data = await res.json();
-      
-      setMsgs((prev) => [
-        ...prev,
-        { text: data.response, isUser: false },
-      ]);
+      setMsgs((prev) => [...prev, { text: data.response, isUser: false }]);
     } catch (err) {
-      console.error('Erro:', err);
+      console.error("Erro:", err);
       setMsgs((prev) => [
         ...prev,
-        { text: err instanceof Error ? err.message : "Desculpe, não consegui processar sua solicitação.", isUser: false },
+        {
+          text:
+            err instanceof Error
+              ? err.message
+              : "Desculpe, não consegui processar sua solicitação.",
+          isUser: false,
+        },
       ]);
     } finally {
       setLoading(false);
@@ -65,17 +120,7 @@ export default function Home() {
             <ChatbotMessage key={i} text={msg.text} />
           )
         )}
-        {loading && (
-          <div className="flex items-center justify-start">
-            <div className="px-4 py-2 rounded-lg bg-gray-100 text-gray-800 max-w-xs">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-              </div>
-            </div>
-          </div>
-        )}
+        {loading && <Loading />}
         <div ref={endRef} />
       </div>
 
