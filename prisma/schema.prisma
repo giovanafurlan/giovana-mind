@@ -57,6 +57,16 @@ model InteractionLog {
   userId     Int
 }
 
+model PersonalFact {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  category String
+  tone     String  @default("neutral")
+}
+
 enum Role {
   user
   assistant

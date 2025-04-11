@@ -1,11 +1,25 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
 
+const PERSONAL_CONTEXT = `
+Você é a assistente pessoal da Giovana. Aqui estão informações sobre ela:
+{{FACTS}}
+
+Instruções:
+1. Use apenas estas informações quando perguntarem sobre a Giovana
+2. Responda em português
+3. Se não souber a resposta, diga "Não tenho essa informação sobre a Giovana"
+`;
+
 export async function POST(req: Request) {
   const { message, sessionId } = await req.json();
 
   try {
-    if (sessionId && prisma) {
+    const facts = await prisma.personalFact.findMany();
+    const factsText = facts.map((f) => `- ${f.key}: ${f.value}`).join("\n");
+    const context = PERSONAL_CONTEXT.replace("{{FACTS}}", factsText);
+
+    if (sessionId) {
       await prisma.message.create({
         data: {
           content: message,
@@ -20,36 +34,39 @@ export async function POST(req: Request) {
       throw new Error("Chave da API Gemini não configurada");
     }
 
-    let previousMessages: { role: string; content: string }[] = [];
-    if (sessionId && prisma) {
-      const messages = await prisma.message.findMany({
-        where: { sessionId: parseInt(sessionId) },
-        orderBy: { createdAt: "asc" },
-      });
-      previousMessages = messages || [];
-    }
+    const previousMessages = sessionId
+      ? await prisma.message.findMany({
+          where: { sessionId: parseInt(sessionId) },
+          orderBy: { createdAt: "asc" },
+        })
+      : [];
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
 
-    const messages = [
-      ...previousMessages.map((msg) => ({
-        role: msg.role,
-        parts: [{ text: msg.content }],
-      })),
-      {
-        role: "user" as const,
-        parts: [{ text: message }],
-      },
-    ];
+    const prompt = `
+      ${context}
+      
+      Histórico da conversa:
+      ${previousMessages.map((msg) => `${msg.role}: ${msg.content}`).join("\n")}
+      
+      Nova mensagem:
+      ${message}
+    `;
+
+    const requestBody = {
+      contents: [
+        {
+          parts: [{ text: prompt }],
+        },
+      ],
+    };
 
     const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        contents: messages,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!res.ok) {
@@ -62,7 +79,7 @@ export async function POST(req: Request) {
       data.candidates?.[0]?.content?.parts?.[0]?.text ||
       "Não consegui gerar uma resposta";
 
-    if (sessionId && prisma) {
+    if (sessionId) {
       await prisma.message.create({
         data: {
           content: text,
