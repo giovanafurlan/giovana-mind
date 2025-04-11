@@ -105,7 +105,7 @@ export default function FactEditor({ facts, setFacts }: FactEditorProps) {
   return (
     <div className="space-y-4">
       <div className="py-4">
-        <h2 className="mb-2">Adicionar Nova Informação</h2>
+        <h2 className="mb-2">Adicionar nova informação</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
           <input
             type="text"
@@ -132,7 +132,7 @@ export default function FactEditor({ facts, setFacts }: FactEditorProps) {
           </select>
           <button
             onClick={handleAdicionar}
-            className="bg-pink-300 text-white p-2 rounded"
+            className="bg-pink-300 text-white p-2 rounded cursor-pointer"
           >
             Adicionar
           </button>

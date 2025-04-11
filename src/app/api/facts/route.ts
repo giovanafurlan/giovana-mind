@@ -17,7 +17,8 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { key, value } = await req.json();
+    // Adicione category e tone ao destructuring
+    const { key, value, category, tone } = await req.json();
 
     if (!key || !value) {
       return NextResponse.json(
@@ -27,12 +28,17 @@ export async function POST(req: Request) {
     }
 
     const newFact = await prisma.personalFact.create({
-      data: { key, value, category: "default" },
+      // Inclua category e tone nos dados criados
+      data: { 
+        key, 
+        value, 
+        category: category || "geral", // Fallback para "geral" se não enviado
+        tone: tone || "neutral"        // Fallback para "neutral" se não enviado
+      },
     });
 
     return NextResponse.json(newFact, { status: 201 });
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (err instanceof Error && (err as any).code === "P2002") {
       return NextResponse.json(
         { error: "Uma informação com esta chave já existe" },
@@ -48,7 +54,8 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const { id, key, value } = await req.json();
+    // Adicione category e tone ao destructuring
+    const { id, key, value, category, tone } = await req.json();
 
     if (!id || !key || !value) {
       return NextResponse.json(
@@ -59,12 +66,17 @@ export async function PUT(req: Request) {
 
     const updatedFact = await prisma.personalFact.update({
       where: { id },
-      data: { key, value },
+      // Inclua category e tone na atualização
+      data: { 
+        key, 
+        value, 
+        category, 
+        tone 
+      },
     });
 
     return NextResponse.json(updatedFact);
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (err instanceof Error && (err as any).code === "P2025") {
       return NextResponse.json(
         { error: "Informação não encontrada" },
