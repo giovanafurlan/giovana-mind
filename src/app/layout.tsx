@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Giovana mind",
-  description: "Giovana mind - Chatbot sobre a vida da Giovana",
+  title: "Giovana's mind",
+  description: "Giovana's mind - Conheça mais sobre a vida da Giovana nesse chatbot",
 };
 
 export default function RootLayout({
