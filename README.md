@@ -2,6 +2,7 @@
 
 ## Overview
 Giovana's Mind is a chatbot that allows users to ask questions about Giovana's life. The project is built with modern web technologies to create an interactive and engaging experience.
+Check the /admin page to manage the facts
 
 ## Figma
 https://www.figma.com/design/U9nT3Cb2nw4yLtoGA6S09J/AI-Chatbot-UI--Community-?node-id=0-1&t=Qr3Vp8rvPGPDp1Lz-1
