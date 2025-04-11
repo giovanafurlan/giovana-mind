@@ -7,7 +7,7 @@ export async function GET() {
       orderBy: { key: "asc" },
     });
     return NextResponse.json(facts);
-  } catch (err) {
+  } catch (err/* eslint-disable-line @typescript-eslint/no-unused-vars */) {
     return NextResponse.json(
       { error: "Falha ao buscar informações pessoais" },
       { status: 500 }
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(newFact, { status: 201 });
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (err instanceof Error && (err as any).code === "P2002") {
       return NextResponse.json(
         { error: "Uma informação com esta chave já existe" },
@@ -63,6 +64,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json(updatedFact);
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (err instanceof Error && (err as any).code === "P2025") {
       return NextResponse.json(
         { error: "Informação não encontrada" },
@@ -96,6 +98,7 @@ export async function DELETE(req: Request) {
       { status: 200 }
     );
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (err instanceof Error && (err as any).code === "P2025") {
       return NextResponse.json(
         { error: "Informação não encontrada" },

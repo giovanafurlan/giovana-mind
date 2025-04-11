@@ -8,7 +8,6 @@ Você é a assistente pessoal da Giovana. Aqui estão informações sobre ela:
 Instruções:
 1. Use apenas estas informações quando perguntarem sobre a Giovana
 2. Responda em português
-3. Se não souber a resposta, diga "Não tenho essa informação sobre a Giovana"
 `;
 
 export async function POST(req: Request) {
